@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Dummy OAuth Login</h1>
+<form class="card" action="/oauth/dummy/authorize" method="post">
+  <input type="hidden" name="state" value="{{ state }}" />
+  <input type="hidden" name="redirect_uri" value="{{ redirect_uri }}" />
+  <div class="row">
+    <label>Email</label>
+    <input name="email" placeholder="any@example.com" />
+  </div>
+  <button type="submit">Login</button>
+</form>
+{% endblock %}

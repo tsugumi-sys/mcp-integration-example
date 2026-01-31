@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Chat Rooms</h1>
+<a class="back-link" href="/credentials">← Back to credentials</a>
+
+<form class="card" action="/chat" method="post">
+  <div class="row">
+    <label>Name</label>
+    <input name="name" placeholder="My Room" />
+  </div>
+  <div class="row">
+    <label>Main LLM</label>
+    <select name="llm_provider">
+      <option value="gemini">gemini</option>
+    </select>
+  </div>
+  <div class="row">
+    <label>Gemini Credential</label>
+    <select name="llm_credential_id">
+      <option value="">(select)</option>
+      {% for c in gemini_credentials %}
+      <option value="{{ c.id }}">{{ c.name }} ({{ c.status }})</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="row">
+    <label>MCP Provider</label>
+    <label class="checkbox">
+      <input type="checkbox" name="mcp_providers" value="google_calendar" />
+      google_calendar
+    </label>
+  </div>
+  <div class="row">
+    <label>Google Calendar Credential</label>
+    <select name="mcp_credential_google_calendar">
+      <option value="">(none)</option>
+      {% for c in gcal_credentials %}
+      <option value="{{ c.id }}">{{ c.name }} ({{ c.status }})</option>
+      {% endfor %}
+    </select>
+  </div>
+  <button type="submit">Create Room</button>
+</form>
+
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Name</th>
+      <th>LLM</th>
+      <th>MCP</th>
+      <th>Created</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for r in rooms %}
+    <tr>
+      <td><a href="/chat/{{ r.id }}">{{ r.id }}</a></td>
+      <td>{{ r.name }}</td>
+      <td>{{ r.llm_provider }}</td>
+      <td>{{ (room_providers[r.id] or []) | join(", ") }}</td>
+      <td>{{ r.created_at }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

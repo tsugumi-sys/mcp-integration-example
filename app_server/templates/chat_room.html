@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>{{ room.name }}</h1>
+<a class="back-link" href="/chat">← Back to rooms</a>
+
+<div class="card">
+  <div><strong>LLM:</strong> {{ room.llm_provider }}</div>
+  <div><strong>MCP:</strong> {{ (providers | map(attribute='provider') | list) | join(", ") or "(none)" }}</div>
+</div>
+
+<div class="chat">
+  {% for m in messages %}
+  <div class="message {{ m.role }}">
+    <div class="role">{{ m.role }}</div>
+    <div class="content">{{ m.content }}</div>
+  </div>
+  {% endfor %}
+</div>
+
+<form class="card" action="/chat/{{ room.id }}/message" method="post">
+  <div class="row">
+    <label>Prompt</label>
+    <textarea name="prompt" rows="4" placeholder="Ask something..."></textarea>
+  </div>
+  <button type="submit">Send</button>
+</form>
+{% endblock %}

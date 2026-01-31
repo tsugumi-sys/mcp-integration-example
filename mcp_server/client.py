@@ -7,9 +7,20 @@ def _headers(jwt: str) -> dict:
     return {"Authorization": f"Bearer {jwt}"}
 
 
+def _clean_params(params: dict | None) -> dict | None:
+    if not params:
+        return None
+    cleaned = {k: v for k, v in params.items() if v not in (None, "")}
+    return cleaned or None
+
+
 async def get(app_server_url: str, path: str, jwt: str, params: dict | None = None) -> dict:
     async with httpx.AsyncClient(timeout=15.0) as client:
-        resp = await client.get(f"{app_server_url}{path}", headers=_headers(jwt), params=params)
+        resp = await client.get(
+            f"{app_server_url}{path}",
+            headers=_headers(jwt),
+            params=_clean_params(params),
+        )
     resp.raise_for_status()
     return resp.json()
 

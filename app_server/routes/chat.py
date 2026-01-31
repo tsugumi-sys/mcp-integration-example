@@ -57,6 +57,10 @@ def _build_tools(providers: list[dict]) -> list[dict]:
                             "type": "object",
                             "properties": {
                                 "credential_id": {"type": "string"},
+                                "max_results": {"type": "integer"},
+                                "page_token": {"type": "string"},
+                                "min_access_role": {"type": "string"},
+                                "fields": {"type": "string"},
                                 "jwt": {"type": "string"},
                             },
                             "required": ["credential_id", "jwt"],
@@ -65,21 +69,101 @@ def _build_tools(providers: list[dict]) -> list[dict]:
                     {
                         "name": "gcal.list_events",
                         "description": "List events in a calendar",
-                "parameters": {
-                    "type": "object",
-                    "properties": {
-                        "credential_id": {"type": "string"},
-                        "calendar_id": {"type": "string"},
-                        "max_results": {"type": "integer"},
-                        "time_min": {"type": "string"},
-                        "order_by": {"type": "string"},
-                        "single_events": {"type": "boolean"},
-                        "jwt": {"type": "string"},
+                        "parameters": {
+                            "type": "object",
+                            "properties": {
+                                "credential_id": {"type": "string"},
+                                "calendar_id": {"type": "string"},
+                                "max_results": {"type": "integer"},
+                                "page_token": {"type": "string"},
+                                "time_min": {"type": "string"},
+                                "time_max": {"type": "string"},
+                                "order_by": {"type": "string"},
+                                "single_events": {"type": "boolean"},
+                                "q": {"type": "string"},
+                                "show_deleted": {"type": "boolean"},
+                                "time_zone": {"type": "string"},
+                                "fields": {"type": "string"},
+                                "jwt": {"type": "string"},
+                            },
+                            "required": ["credential_id", "calendar_id", "jwt"],
+                        },
                     },
-                    "required": ["credential_id", "calendar_id", "jwt"],
-                },
-            },
-        ]
+                    {
+                        "name": "gcal.get_event",
+                        "description": "Get a single event",
+                        "parameters": {
+                            "type": "object",
+                            "properties": {
+                                "credential_id": {"type": "string"},
+                                "calendar_id": {"type": "string"},
+                                "event_id": {"type": "string"},
+                                "fields": {"type": "string"},
+                                "jwt": {"type": "string"},
+                            },
+                            "required": ["credential_id", "calendar_id", "event_id", "jwt"],
+                        },
+                    },
+                    {
+                        "name": "gcal.create_event",
+                        "description": "Create an event",
+                        "parameters": {
+                            "type": "object",
+                            "properties": {
+                                "credential_id": {"type": "string"},
+                                "calendar_id": {"type": "string"},
+                                "event": {"type": "object"},
+                                "jwt": {"type": "string"},
+                            },
+                            "required": ["credential_id", "calendar_id", "event", "jwt"],
+                        },
+                    },
+                    {
+                        "name": "gcal.update_event",
+                        "description": "Update an event",
+                        "parameters": {
+                            "type": "object",
+                            "properties": {
+                                "credential_id": {"type": "string"},
+                                "calendar_id": {"type": "string"},
+                                "event_id": {"type": "string"},
+                                "payload": {"type": "object"},
+                                "jwt": {"type": "string"},
+                            },
+                            "required": ["credential_id", "calendar_id", "event_id", "payload", "jwt"],
+                        },
+                    },
+                    {
+                        "name": "gcal.delete_event",
+                        "description": "Delete an event",
+                        "parameters": {
+                            "type": "object",
+                            "properties": {
+                                "credential_id": {"type": "string"},
+                                "calendar_id": {"type": "string"},
+                                "event_id": {"type": "string"},
+                                "jwt": {"type": "string"},
+                            },
+                            "required": ["credential_id", "calendar_id", "event_id", "jwt"],
+                        },
+                    },
+                    {
+                        "name": "gcal.availability",
+                        "description": "Check free/busy for a time range",
+                        "parameters": {
+                            "type": "object",
+                            "properties": {
+                                "credential_id": {"type": "string"},
+                                "calendar_id": {"type": "string"},
+                                "time_min": {"type": "string"},
+                                "time_max": {"type": "string"},
+                                "time_zone": {"type": "string"},
+                                "jwt": {"type": "string"},
+                            },
+                            "required": ["credential_id", "calendar_id", "time_min", "time_max", "jwt"],
+                        },
+                    },
+                ]
             )
     if not declarations:
         return []
@@ -243,6 +327,23 @@ async def chat_message(
                             args.setdefault("max_results", 10)
                             args.setdefault("order_by", "startTime")
                             args.setdefault("single_events", True)
+                        if tool_name == "gcal.create_event":
+                            args = {
+                                "credential_id": args.get("credential_id"),
+                                "jwt": args.get("jwt"),
+                                "payload": {
+                                    "calendar_id": args.get("calendar_id"),
+                                    "event": args.get("event") or {},
+                                },
+                            }
+                        if tool_name == "gcal.update_event":
+                            args = {
+                                "credential_id": args.get("credential_id"),
+                                "calendar_id": args.get("calendar_id"),
+                                "event_id": args.get("event_id"),
+                                "payload": args.get("payload") or {},
+                                "jwt": args.get("jwt"),
+                            }
                         if "jwt" in args:
                             args["jwt"] = jwt
                         else:

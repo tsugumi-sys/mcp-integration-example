@@ -4,6 +4,7 @@ import os
 
 from dotenv import load_dotenv
 from fastmcp import Context, FastMCP
+from fastmcp.server.auth import JWTVerifier
 
 import tools
 
@@ -11,8 +12,17 @@ load_dotenv()
 APP_SERVER_URL = os.getenv("APP_SERVER_URL", "http://127.0.0.1:8000")
 MCP_HOST = os.getenv("MCP_HOST", "127.0.0.1")
 MCP_PORT = int(os.getenv("MCP_PORT", "9001"))
+JWT_SECRET = os.getenv("JWT_SECRET", "change-me")
+JWT_ISSUER = os.getenv("JWT_ISSUER", "app-server")
 
-mcp = FastMCP("mcp-server")
+mcp = FastMCP(
+    "mcp-server",
+    auth=JWTVerifier(
+        public_key=JWT_SECRET,
+        issuer=JWT_ISSUER,
+        algorithm="HS256",
+    ),
+)
 
 
 @mcp.tool(name="gcal.list_calendars")

@@ -253,6 +253,11 @@ Admin User
 - `fastmcp.Client(..., auth=...)` を使って接続単位で認証を付与する
 - これにより internal client と external client で MCP tool interface を共通化できる
 
+5. 未認証では tool discovery も通さない
+- hosted MCP として使う場合、`tools/list` も含めて未認証 request は拒否する
+- つまり `mcp_server` では connection-level auth を有効にし、未認証の段階で `401` にする
+- Notion のような hosted MCP と同じく、「認証後に tools が見える」モデルに寄せる
+
 ### 6.2 token 取り回しの原則
 
 - `mcp_server` は token を発行しない

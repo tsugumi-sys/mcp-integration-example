@@ -10,12 +10,16 @@ Optional (defaults)
 - `APP_SERVER_URL` (http://127.0.0.1:8000)
 - `MCP_HOST` (127.0.0.1)
 - `MCP_PORT` (9001)
+- `JWT_SECRET` (change-me)
+- `JWT_ISSUER` (app-server)
 
 ## HTTP Endpoint
 - Default URL: `http://127.0.0.1:9001/mcp`
 
 ## Auth
 - MCP tools no longer take a `jwt` argument.
-- The server expects bearer auth on the MCP HTTP connection and forwards that token to `app_server`.
+- The server requires bearer auth on the MCP HTTP connection.
+- Unauthenticated clients should not be able to list tools or call tools.
+- The server forwards the same bearer token to `app_server`.
 - For local in-app chat, the app connects with `fastmcp.Client(..., auth=<jwt>)`.
 - For external clients such as Claude Desktop, use the app server OAuth endpoints to obtain a bearer token and then connect to the MCP endpoint with that token.

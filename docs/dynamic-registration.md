@@ -228,6 +228,7 @@ Admin User
 `mcp_server` の責務:
 
 - tool surface を公開する
+- protected resource metadata を公開する
 - incoming bearer token を受け取る
 - bearer token を `app_server` に転送する
 - provider ロジックや token 検証は持たない
@@ -258,11 +259,18 @@ Admin User
 - つまり `mcp_server` では connection-level auth を有効にし、未認証の段階で `401` にする
 - Notion のような hosted MCP と同じく、「認証後に tools が見える」モデルに寄せる
 
+6. protected resource metadata を返せるようにする
+- `mcp_server` は token verifier だけでは不十分
+- 外部 client は「どの authorization server を使うか」を `mcp_server` から知る必要がある
+- そのため `mcp_server` は protected resource metadata を返し、authorization server として `app_server` を advertise する
+- これがないと Claude Desktop や `fastmcp.Client(..., auth=\"oauth\")` が自動で OAuth flow を始めにくい
+
 ### 6.2 token 取り回しの原則
 
 - `mcp_server` は token を発行しない
 - `mcp_server` は token を永続化しない
 - `mcp_server` は token を bearer header として転送するだけ
+- `mcp_server` は authorization server の場所を metadata として返す
 
 この構成にすると、認証ロジックが分散しません。
 

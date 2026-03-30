@@ -4,19 +4,26 @@
 
 ![Architecture](architecture.png)
 
-## Claude Desktop Test
+## Local OAuth Test With Python Client
 
-This repo can be tested from Claude Desktop against the local remote MCP endpoint.
+For local verification, use a Python MCP client against plain localhost. This is much simpler than testing from Claude Desktop because it does not require HTTPS termination.
 
-Prerequisites:
+This verifies:
 
-- Claude Desktop with remote MCP connectors enabled
-- a Claude plan that supports custom remote MCP connectors
+- protected resource metadata on `mcp_server`
+- OAuth metadata on `app_server`
+- dynamic client registration
+- authorization code flow
+- refresh token flow
+- authenticated MCP tool calls
+
+### Prerequisites
+
 - `app_server` and `mcp_server` running locally
 - Google admin login configured
 - at least one connected Google Calendar credential in the admin UI
 
-Start servers:
+### Start servers
 
 1. In one terminal:
 ```bash
@@ -29,50 +36,90 @@ cd mcp_server
 uv run main.py
 ```
 
-Default local URLs:
+### Local URLs
 
 - App Server: `http://127.0.0.1:8000`
 - MCP Server: `http://127.0.0.1:9001/mcp`
 
-Recommended pre-checks:
+### Required local settings
+
+- `app_server/.env`
+  - `MCP_SERVER_URL=http://127.0.0.1:9001/mcp`
+- `mcp_server/.env`
+  - `APP_SERVER_URL=http://127.0.0.1:8000`
+  - `AUTH_SERVER_URL=http://127.0.0.1:8000`
+  - `MCP_PUBLIC_URL=http://127.0.0.1:9001`
+  - `JWT_SECRET` and `JWT_ISSUER` must match `app_server/.env`
+
+### Google OAuth redirect URIs for localhost
+
+- `http://127.0.0.1:8000/auth/google/callback`
+- `http://127.0.0.1:8000/oauth/google_calendar/callback`
+
+### Recommended pre-checks
 
 1. Open `http://127.0.0.1:8000/auth/login` and confirm Google login works.
 2. Open `http://127.0.0.1:8000/credentials` and confirm the target Google Calendar credential is `connected`.
 3. Open `http://127.0.0.1:8000/.well-known/oauth-authorization-server` and confirm metadata is returned.
+4. Open `http://127.0.0.1:9001/.well-known/oauth-protected-resource/mcp` and confirm protected resource metadata is returned.
 
-Claude Desktop steps:
+### Python client example
 
-1. Open Claude Desktop.
-2. Go to `Settings > Connectors`.
-3. Add a custom remote connector.
-4. Enter the MCP URL:
-   `http://127.0.0.1:9001/mcp`
-5. Start the connector auth flow when Claude Desktop prompts for authentication.
-6. Complete the OAuth flow in the browser:
-   - client registration is handled by Claude Desktop
-   - login is handled by this app at `http://127.0.0.1:8000/auth/login`
-   - authorization is handled by this app at `http://127.0.0.1:8000/oauth/authorize`
-7. Return to Claude Desktop and confirm the connector shows as connected.
+Run the included test client:
 
-Suggested smoke tests in Claude Desktop:
+```bash
+cd mcp_server
+uv run test_oauth_client.py
+```
 
-1. Ask Claude to list available calendars.
-2. Ask Claude to list events for a selected calendar.
-3. Ask Claude to create a small test event in that calendar.
+Or use this minimal example:
+
+```python
+from fastmcp import Client
+import anyio
+
+
+async def main():
+    async with Client("http://127.0.0.1:9001/mcp", auth="oauth") as client:
+        tools = await client.list_tools()
+        print(tools)
+
+
+anyio.run(main)
+```
 
 Expected behavior:
 
-- Claude Desktop connects to the local MCP endpoint over HTTP
-- bearer auth is sent on the MCP connection
-- `mcp_server` forwards that bearer token to `app_server`
-- `app_server` validates the JWT and executes the Google Calendar API call
+1. The client discovers the MCP protected resource metadata from `mcp_server`.
+2. The client discovers the authorization server metadata from `app_server`.
+3. The client dynamically registers itself.
+4. A browser opens for Google admin login and authorization.
+5. The client receives tokens and retries the MCP request with bearer auth.
+6. `tools/list` and tool calls succeed.
 
-Notes:
+### Why this path is preferred for local testing
 
-- The local in-app chat and Claude Desktop can coexist. They use the same MCP tool surface, but they obtain bearer tokens through different client paths.
-- The in-app chat is an internal client and still issues JWTs directly inside `app_server`.
-- Claude Desktop is an external client and uses OAuth metadata, registration, authorization, and token exchange.
-- If you see JWT warnings locally, set a long random `JWT_SECRET` in `app_server/.env`.
+- no HTTPS setup required
+- no local CA trust issues
+- no Claude Desktop UI/debugging friction
+- you can verify the full OAuth and dynamic registration flow directly
+
+### What this does and does not prove
+
+This localhost Python flow is a strong validation of the server-side implementation. It verifies:
+
+- protected resource metadata on `mcp_server`
+- authorization server metadata on `app_server`
+- dynamic registration
+- authorization code flow
+- refresh token flow
+- authenticated MCP requests
+
+It does not fully guarantee Claude Desktop compatibility after deployment. HTTPS, public reachability, redirect URI configuration, and Claude Desktop-specific behavior still need to be verified in a real remote environment.
+
+### Note about Claude Desktop
+
+Claude Desktop remote MCP testing is still useful, but it typically expects HTTPS endpoints. Use it after the localhost Python flow is working.
 
 ## Tool Selection Control
 

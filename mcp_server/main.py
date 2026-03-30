@@ -4,7 +4,8 @@ import os
 
 from dotenv import load_dotenv
 from fastmcp import Context, FastMCP
-from fastmcp.server.auth import JWTVerifier
+from fastmcp.server.auth import JWTVerifier, RemoteAuthProvider
+from pydantic import AnyHttpUrl
 
 import tools
 
@@ -14,13 +15,20 @@ MCP_HOST = os.getenv("MCP_HOST", "127.0.0.1")
 MCP_PORT = int(os.getenv("MCP_PORT", "9001"))
 JWT_SECRET = os.getenv("JWT_SECRET", "change-me")
 JWT_ISSUER = os.getenv("JWT_ISSUER", "app-server")
+AUTH_SERVER_URL = os.getenv("AUTH_SERVER_URL", APP_SERVER_URL)
+MCP_PUBLIC_URL = os.getenv("MCP_PUBLIC_URL", f"http://{MCP_HOST}:{MCP_PORT}")
 
 mcp = FastMCP(
     "mcp-server",
-    auth=JWTVerifier(
-        public_key=JWT_SECRET,
-        issuer=JWT_ISSUER,
-        algorithm="HS256",
+    auth=RemoteAuthProvider(
+        token_verifier=JWTVerifier(
+            public_key=JWT_SECRET,
+            issuer=JWT_ISSUER,
+            algorithm="HS256",
+        ),
+        authorization_servers=[AnyHttpUrl(AUTH_SERVER_URL)],
+        base_url=MCP_PUBLIC_URL,
+        resource_name="mcp-server",
     ),
 )
 

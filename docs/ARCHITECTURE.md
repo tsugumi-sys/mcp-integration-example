@@ -75,6 +75,11 @@
   - authorization: `/oauth/authorize`
   - token: `/auth/token`
 
+### Protected Resource Metadata
+- MCP Server は protected resource server として振る舞う。
+- そのため token 検証だけでなく、「どの authorization server を使うべきか」を返す metadata も公開する必要がある。
+- 外部 MCP client はこの metadata を見て OAuth flow を開始する。
+
 ### JWT 発行
 - App Server が短命 JWT を発行する。
 - 署名は `JWT_SECRET`、発行者は `JWT_ISSUER`。
@@ -115,14 +120,16 @@
 7. メッセージは DB に保存。
 
 ## 実行フロー（Claude Desktop などの外部 MCP client）
-1. 外部 client が App Server の metadata endpoint を発見する。
-2. 外部 client が dynamic client registration を行う。
-3. ユーザーは Google Sign-In で admin login を行う。
-4. App Server が authorization code を発行する。
-5. 外部 client が token endpoint で JWT を取得する。
-6. 外部 client が bearer auth 付きで MCP Server を呼ぶ。
-7. MCP Server は受けた token を App Server backend API に転送する。
-8. App Server が JWT を検証し、Provider API を実行する。
+1. 外部 client が MCP Server の protected resource metadata を発見する。
+2. MCP Server が利用すべき authorization server として App Server を返す。
+3. 外部 client が App Server の metadata endpoint を発見する。
+4. 外部 client が dynamic client registration を行う。
+5. ユーザーは Google Sign-In で admin login を行う。
+6. App Server が authorization code を発行する。
+7. 外部 client が token endpoint で access token / refresh token を取得する。
+8. 外部 client が bearer auth 付きで MCP Server を呼ぶ。
+9. MCP Server は受けた token を App Server backend API に転送する。
+10. App Server が JWT を検証し、Provider API を実行する。
 
 ## MCP → App Server 集中の理由
 - 認証・検証ロジックの **分散を防ぐ**。

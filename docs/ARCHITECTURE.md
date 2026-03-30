@@ -110,6 +110,14 @@
 - Google Calendar は OAuth、Gemini は API キー。
 - Chat ルーム単位で **1つの LLM credential** と **0..N の MCP provider** を選択。
 
+### 外部 MCP client からの credential 解決
+- 現在のローカル実装では、外部 MCP client から provider tool を呼ぶとき `credential_id` を明示的に渡している。
+- これはローカル検証用の簡易実装であり、本番の外部向け interface としては不十分。
+- 本番実装では、外部 client は `credential_id` を知るべきではない。
+- 代わりに access token / JWT から user identity を取り出し、そのユーザーに紐づく default credential を application server 側で解決する必要がある。
+- つまり provider 実行時の credential 選択は、room 文脈ではなく auth 文脈から行う。
+- 将来的には、user ごとに provider 単位の default credential を持てる構造が必要になる。
+
 ## 実行フロー（チャット）
 1. ユーザーがルームでプロンプトを送信。
 2. App Server が選択済み MCP provider のツールスキーマを生成。
@@ -129,7 +137,9 @@
 7. 外部 client が token endpoint で access token / refresh token を取得する。
 8. 外部 client が bearer auth 付きで MCP Server を呼ぶ。
 9. MCP Server は受けた token を App Server backend API に転送する。
-10. App Server が JWT を検証し、Provider API を実行する。
+10. App Server が JWT を検証し、token の subject から user identity を特定する。
+11. App Server がその user に紐づく default credential を解決する。
+12. App Server が Provider API を実行する。
 
 ## MCP → App Server 集中の理由
 - 認証・検証ロジックの **分散を防ぐ**。

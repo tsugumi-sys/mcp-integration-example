@@ -6,7 +6,18 @@ from fastapi.staticfiles import StaticFiles
 
 from config import load_settings
 from db import connect, init_db
-from routes import admin, api, auth, chat, dummy_oauth, oauth
+from routes import (
+    admin,
+    api,
+    auth,
+    chat,
+    dummy_oauth,
+    google_login,
+    oauth,
+    oauth_authorize,
+    oauth_metadata,
+    oauth_registration,
+)
 
 
 def create_app() -> FastAPI:
@@ -20,9 +31,13 @@ def create_app() -> FastAPI:
     app.state.db = conn
     app.state.settings = settings
 
+    app.include_router(google_login.router)
     app.include_router(dummy_oauth.router)
     app.include_router(admin.router)
     app.include_router(oauth.router)
+    app.include_router(oauth_authorize.router)
+    app.include_router(oauth_metadata.router)
+    app.include_router(oauth_registration.router)
     app.include_router(auth.router)
     app.include_router(chat.router)
     app.include_router(api.router)

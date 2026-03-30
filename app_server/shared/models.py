@@ -20,6 +20,7 @@ class AuthTokenResponse(BaseModel):
     access_token: str
     token_type: str = "Bearer"
     expires_in: int
+    refresh_token: str | None = None
 
 
 class ApiError(BaseModel):

@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from typing import Any
 
+from fastmcp import Context
+
 from auth import require_jwt
 from client import get, post
 
@@ -9,13 +11,14 @@ from client import get, post
 async def gcal_list_calendars(
     app_server_url: str,
     credential_id: str,
-    jwt: str,
+    jwt: str | None = None,
+    ctx: Context | None = None,
     max_results: int | None = None,
     page_token: str | None = None,
     min_access_role: str | None = None,
     fields: str | None = None,
 ) -> dict:
-    jwt = require_jwt(jwt)
+    jwt = require_jwt(jwt, ctx)
     return await get(
         app_server_url,
         f"/api/google_calendar/{credential_id}/list_calendars",
@@ -33,7 +36,8 @@ async def gcal_list_events(
     app_server_url: str,
     credential_id: str,
     calendar_id: str,
-    jwt: str,
+    jwt: str | None = None,
+    ctx: Context | None = None,
     max_results: int | None = None,
     page_token: str | None = None,
     time_min: str | None = None,
@@ -45,7 +49,7 @@ async def gcal_list_events(
     time_zone: str | None = None,
     fields: str | None = None,
 ) -> dict:
-    jwt = require_jwt(jwt)
+    jwt = require_jwt(jwt, ctx)
     return await get(
         app_server_url,
         f"/api/google_calendar/{credential_id}/list_events",
@@ -67,9 +71,13 @@ async def gcal_list_events(
 
 
 async def gcal_create_event(
-    app_server_url: str, credential_id: str, payload: dict, jwt: str
+    app_server_url: str,
+    credential_id: str,
+    payload: dict,
+    jwt: str | None = None,
+    ctx: Context | None = None,
 ) -> dict:
-    jwt = require_jwt(jwt)
+    jwt = require_jwt(jwt, ctx)
     return await post(
         app_server_url,
         f"/api/google_calendar/{credential_id}/create_event",
@@ -83,10 +91,11 @@ async def gcal_get_event(
     credential_id: str,
     calendar_id: str,
     event_id: str,
-    jwt: str,
+    jwt: str | None = None,
+    ctx: Context | None = None,
     fields: str | None = None,
 ) -> dict:
-    jwt = require_jwt(jwt)
+    jwt = require_jwt(jwt, ctx)
     return await get(
         app_server_url,
         f"/api/google_calendar/{credential_id}/get_event",
@@ -101,9 +110,10 @@ async def gcal_update_event(
     calendar_id: str,
     event_id: str,
     payload: dict,
-    jwt: str,
+    jwt: str | None = None,
+    ctx: Context | None = None,
 ) -> dict:
-    jwt = require_jwt(jwt)
+    jwt = require_jwt(jwt, ctx)
     return await post(
         app_server_url,
         f"/api/google_calendar/{credential_id}/update_event",
@@ -117,9 +127,10 @@ async def gcal_delete_event(
     credential_id: str,
     calendar_id: str,
     event_id: str,
-    jwt: str,
+    jwt: str | None = None,
+    ctx: Context | None = None,
 ) -> dict:
-    jwt = require_jwt(jwt)
+    jwt = require_jwt(jwt, ctx)
     return await post(
         app_server_url,
         f"/api/google_calendar/{credential_id}/delete_event",
@@ -134,10 +145,11 @@ async def gcal_availability(
     calendar_id: str,
     time_min: str,
     time_max: str,
-    jwt: str,
+    jwt: str | None = None,
+    ctx: Context | None = None,
     time_zone: str | None = None,
 ) -> dict:
-    jwt = require_jwt(jwt)
+    jwt = require_jwt(jwt, ctx)
     return await post(
         app_server_url,
         f"/api/google_calendar/{credential_id}/availability",
@@ -152,9 +164,13 @@ async def gcal_availability(
 
 
 async def gemini_generate(
-    app_server_url: str, credential_id: str, prompt: str, jwt: str
+    app_server_url: str,
+    credential_id: str,
+    prompt: str,
+    jwt: str | None = None,
+    ctx: Context | None = None,
 ) -> dict:
-    jwt = require_jwt(jwt)
+    jwt = require_jwt(jwt, ctx)
     payload = {"prompt": prompt}
     return await post(
         app_server_url, f"/api/gemini/{credential_id}/generate", jwt, payload

@@ -64,6 +64,49 @@ def init_db(conn: sqlite3.Connection) -> None:
     )
     cursor.execute(
         """
+        CREATE TABLE IF NOT EXISTS oauth_clients (
+            client_id TEXT PRIMARY KEY,
+            client_secret TEXT,
+            client_name TEXT NOT NULL,
+            redirect_uris_json TEXT,
+            grant_types_json TEXT NOT NULL,
+            response_types_json TEXT NOT NULL,
+            scope TEXT,
+            token_endpoint_auth_method TEXT NOT NULL,
+            created_at INTEGER NOT NULL,
+            updated_at INTEGER NOT NULL
+        )
+        """
+    )
+    cursor.execute(
+        """
+        CREATE TABLE IF NOT EXISTS oauth_authorization_codes (
+            code TEXT PRIMARY KEY,
+            client_id TEXT NOT NULL,
+            redirect_uri TEXT NOT NULL,
+            subject TEXT NOT NULL,
+            scope TEXT,
+            expires_at INTEGER NOT NULL,
+            created_at INTEGER NOT NULL,
+            FOREIGN KEY(client_id) REFERENCES oauth_clients(client_id)
+        )
+        """
+    )
+    cursor.execute(
+        """
+        CREATE TABLE IF NOT EXISTS oauth_refresh_tokens (
+            refresh_token TEXT PRIMARY KEY,
+            client_id TEXT NOT NULL,
+            subject TEXT NOT NULL,
+            scope TEXT,
+            expires_at INTEGER NOT NULL,
+            created_at INTEGER NOT NULL,
+            FOREIGN KEY(client_id) REFERENCES oauth_clients(client_id)
+        )
+        """
+    )
+    cursor.execute(
+        """
         CREATE TABLE IF NOT EXISTS dummy_oauth_codes (
             code TEXT PRIMARY KEY,
             email TEXT NOT NULL,

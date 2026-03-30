@@ -61,9 +61,8 @@ def _build_tools(providers: list[dict]) -> list[dict]:
                                 "page_token": {"type": "string"},
                                 "min_access_role": {"type": "string"},
                                 "fields": {"type": "string"},
-                                "jwt": {"type": "string"},
                             },
-                            "required": ["credential_id", "jwt"],
+                            "required": ["credential_id"],
                         },
                     },
                     {
@@ -84,9 +83,8 @@ def _build_tools(providers: list[dict]) -> list[dict]:
                                 "show_deleted": {"type": "boolean"},
                                 "time_zone": {"type": "string"},
                                 "fields": {"type": "string"},
-                                "jwt": {"type": "string"},
                             },
-                            "required": ["credential_id", "calendar_id", "jwt"],
+                            "required": ["credential_id", "calendar_id"],
                         },
                     },
                     {
@@ -99,9 +97,8 @@ def _build_tools(providers: list[dict]) -> list[dict]:
                                 "calendar_id": {"type": "string"},
                                 "event_id": {"type": "string"},
                                 "fields": {"type": "string"},
-                                "jwt": {"type": "string"},
                             },
-                            "required": ["credential_id", "calendar_id", "event_id", "jwt"],
+                            "required": ["credential_id", "calendar_id", "event_id"],
                         },
                     },
                     {
@@ -113,9 +110,8 @@ def _build_tools(providers: list[dict]) -> list[dict]:
                                 "credential_id": {"type": "string"},
                                 "calendar_id": {"type": "string"},
                                 "event": {"type": "object"},
-                                "jwt": {"type": "string"},
                             },
-                            "required": ["credential_id", "calendar_id", "event", "jwt"],
+                            "required": ["credential_id", "calendar_id", "event"],
                         },
                     },
                     {
@@ -128,9 +124,8 @@ def _build_tools(providers: list[dict]) -> list[dict]:
                                 "calendar_id": {"type": "string"},
                                 "event_id": {"type": "string"},
                                 "payload": {"type": "object"},
-                                "jwt": {"type": "string"},
                             },
-                            "required": ["credential_id", "calendar_id", "event_id", "payload", "jwt"],
+                            "required": ["credential_id", "calendar_id", "event_id", "payload"],
                         },
                     },
                     {
@@ -142,9 +137,8 @@ def _build_tools(providers: list[dict]) -> list[dict]:
                                 "credential_id": {"type": "string"},
                                 "calendar_id": {"type": "string"},
                                 "event_id": {"type": "string"},
-                                "jwt": {"type": "string"},
                             },
-                            "required": ["credential_id", "calendar_id", "event_id", "jwt"],
+                            "required": ["credential_id", "calendar_id", "event_id"],
                         },
                     },
                     {
@@ -158,9 +152,8 @@ def _build_tools(providers: list[dict]) -> list[dict]:
                                 "time_min": {"type": "string"},
                                 "time_max": {"type": "string"},
                                 "time_zone": {"type": "string"},
-                                "jwt": {"type": "string"},
                             },
-                            "required": ["credential_id", "calendar_id", "time_min", "time_max", "jwt"],
+                            "required": ["credential_id", "calendar_id", "time_min", "time_max"],
                         },
                     },
                 ]
@@ -317,7 +310,7 @@ async def chat_message(
             if "thoughtSignature" not in function_call_part:
                 function_call_part["thoughtSignature"] = "skip_thought_signature_validator"
             try:
-                async with Client(settings.mcp_server_url) as client:
+                async with Client(settings.mcp_server_url, auth=jwt) as client:
                     tool_name = function_call_part.get("functionCall", {}).get("name")
                     args = function_call_part.get("functionCall", {}).get("args") or {}
                     if tool_name:
@@ -342,12 +335,7 @@ async def chat_message(
                                 "calendar_id": args.get("calendar_id"),
                                 "event_id": args.get("event_id"),
                                 "payload": args.get("payload") or {},
-                                "jwt": args.get("jwt"),
                             }
-                        if "jwt" in args:
-                            args["jwt"] = jwt
-                        else:
-                            args = {**args, "jwt": jwt}
                         if tool_name.startswith("gcal.") and not args.get("credential_id"):
                             raise ValueError("google_calendar credential not set for this room")
                     tool_result = await client.call_tool(tool_name, args)

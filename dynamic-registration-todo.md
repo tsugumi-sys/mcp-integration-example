@@ -99,12 +99,12 @@ This file tracks the concrete implementation work derived from `Plan.md`.
 ## Phase 5: MCP integration cleanup
 
 ### MCP server
-- [x] Revisit whether `jwt` should remain an explicit MCP tool argument
+- [ ] Revisit whether `jwt` should remain an explicit MCP tool argument
 - [ ] Align `mcp_server` auth behavior with the new authorization server flow
 
 ### App chat integration
-- [x] Review `app_server/routes/chat.py` JWT injection behavior
-- [x] Keep or refactor the local chat shortcut intentionally instead of leaving it as a hidden assumption
+- [ ] Review `app_server/routes/chat.py` JWT injection behavior
+- [ ] Keep or refactor the local chat shortcut intentionally instead of leaving it as a hidden assumption
 
 ### Docs
 - [ ] Update root `README.md`

@@ -41,7 +41,7 @@ def _validate_state(conn, state: str) -> bool:
     return row["expires_at"] >= int(time.time())
 
 
-@router.get("/auth/login")
+@router.get("/auth/dummy/login")
 async def login(request: Request):
     conn = request.app.state.db
     state = _create_state(conn)
